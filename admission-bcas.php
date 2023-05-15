@@ -2,6 +2,16 @@
 include 'config/connection.php';
 
 if (isset($_POST['submit'])) {
+    $department = $_POST['department'];
+    $strandCourse = '';
+
+    // QUERY IF SELECTED DEPARTMENT FILL THE REQUIREMENT OR NOT
+    if ($department === 'Pre-Elementary' || $department === 'Elementary' || $department === 'Junior High School') {
+        $strandCourse = '';
+    } else if ($department === 'Senior High School' || $department === 'College') {
+        $strandCourse = $_POST['strand_course'];
+    }
+
     // TABLE NAME: toenroll
     // SCHOOL ENROLL
     $enrollQuery = "INSERT INTO toenroll (studentnumber, department, type, gradelevel, strand_course) VALUES (?, ?, ?, ?, ?)";
@@ -11,7 +21,7 @@ if (isset($_POST['submit'])) {
         $_POST['department'],
         $_POST['type'],
         $_POST['gradelevel'],
-        $_POST['strand_course'],
+        $strandCourse,
     ]);
 
     // TABLE NAME: student_data
@@ -121,17 +131,23 @@ if (isset($_POST['submit'])) {
         $_POST['sisterscontact'],
     ]);
 
+    // QUERY IF THE RESERVATION IS FILLED THE REQUIREMENTS OR NOT
+    $reservationQuery = "INSERT INTO school_reservation (studentnumber, bcas, othertext, paidreservation, schoolrefund) VALUES (?, ?, ?, ?, ?)";
+    $reservationStatement = $conn->prepare($reservationQuery);
+
+    $paidReservation = $_POST['paidreservation'];
+    $schoolRefund = ($paidReservation === 'No') ? '' : $_POST['schoolrefund'];
+
     // TABLE NAME: school_reservation
     // RESERVATION
-    $reservationQuery = "INSERT INTO school_reservation (studentnumber, bcas, paidreservation, schoolrefund) VALUES (?, ?, ?, ?)";
-    $reservationStatement = $conn->prepare($reservationQuery);
     $reservationStatement->execute([
         $_POST['studentnumber'],
         $_POST['bcas'],
-        $_POST['paidreservation'],
-        $_POST['schoolrefund'],
+        $_POST['othertext'],
+        $paidReservation,
+        $schoolRefund,
     ]);
-
+    echo "<link rel='shortcut icon' href='images/favicon.ico' type='image/x-icon'>";
     echo "<h1 class='bg-success text-white p-3 text-center'>Student Application Already Sent!</h1>";
 }
 ?>
@@ -833,205 +849,59 @@ if (isset($_POST['submit'])) {
                                     <br>
                                     <br>
 
-                    <div class="title" style="margin-bottom: 20px; font-size: 20px; font-weight: 900;">
-                        Please select whichever applies to the enrollee for:
-                        <hr>
+                                    <div class="title" style="margin-bottom: 20px; font-size: 20px; font-weight: 900;">
+                                    Please select whichever applies to the enrollee for:
+                                    <hr>
 
-                                <div class="mr-4">
-                                    <input name="bcas" value="3Child" type="radio" id="3rd" checked />
-                                    <label class="radio" for="3CS"> <p style="font-size:12px">3rd Child Studying in BCAS</label>
-                                </div>
-                                <div>
-                                    <input name="bcas" value="4Child" type="radio" id="4th" checked />
-                                    <label class="radio" for="4CS"><p style="font-size:12px">4th Child Studying in BCAS</label>
-                                </div>
-                                <div>
-                                    <input name="bcas" value="5Child" type="radio" id="5th" checked />
-                                    <label class="radio" for="5CS"> <p style="font-size:12px">5th Child Studying in BCAS</label>
-                                </div>
-                                <div>
-                                    <input name="bcas" value="OtherPS" type="radio" id="Oth" checked />
-                                    <label class="radio" for="OPS"> <p style="font-size:12px">Other, Please Specify: </label>
-                                </div>
-                                <hr>
-                                <div class="field-labell mr-4 required" style="margin-top:4px; margin-bottom:4px;">Paid Reservation:</div>
-                                <div class="mr-3">
-                                    <input name="paidreservation" value="Yes" type="radio" id="YES" />
-                                    <label class="radio" for="Y">Yes</label>
-                                </div>
-                                <div>
-                                    <input name="paidreservation" value="No" type="radio" id="NO"  checked/>
-                                    <label class="radio" for="N">No</label>
-                                </div>
-                                <div class="field-label mr-4 required" style="margin-top:4px; margin-bottom:4px;">With SY 2022-2023 refund?:</div>
-                                <div class="mr-3">
-                                    <input name="schoolrefund" value="Yes" type="radio" id="YES" checked />
-                                    <label id="hidez" class="radio" for="YY">Yes</label>
-                                </div>
-                                <div>
-                                    <input name="schoolrefund" value="No" type="radio" id="NO"  />
-                                    <label id="hidez" class="radio" for="NN">No</label>
-                                </div>
-                            <button type="submit" class="btn btn-success" name="submit" style="display: block;
-                            margin:0 auto; width: 200px;">Submit</button>
+                                    <div class="mr-4">
+                                        <input name="bcas" value="3Child" type="radio" id="3rd" checked />
+                                        <label class="radio" for="3rd"> <p style="font-size:12px">3rd Child Studying in BCAS</label>
+                                    </div>
+                                    <div>
+                                        <input name="bcas" value="4Child" type="radio" id="4th" />
+                                        <label class="radio" for="4th"><p style="font-size:12px">4th Child Studying in BCAS</label>
+                                    </div>
+                                    <div>
+                                        <input name="bcas" value="5Child" type="radio" id="5th" />
+                                        <label class="radio" for="5th"> <p style="font-size:12px">5th Child Studying in BCAS</label>
+                                    </div>
+                                    <div>
+                                        <input name="bcas" value="OtherPS" type="radio" id="Oth" />
+                                        <label class="radio" for="Oth"> <p style="font-size:12px">Other, Please Specify:</label>
+                                    </div>
+                                    <div id="otherInput" style="display: none;">
+                                        <input type="text" name="othertext" class="form-control" id="otherText" />
+                                    </div>
+                                    <hr>
+                                    <div class="field-labell mr-4 required" style="margin-top:4px; margin-bottom:4px;">Paid Reservation:</div>
+                                    <div class="mr-3">
+                                        <input name="paidreservation" value="Yes" type="radio" id="YES" />
+                                        <label class="radio" for="Y">Yes</label>
+                                    </div>
+                                    <div>
+                                        <input name="paidreservation" value="No" type="radio" id="NO"  checked/>
+                                        <label class="radio" for="N">No</label>
+                                    </div>
+                                    <div class="field-label mr-4 required" style="margin-top:4px; margin-bottom:4px;">With SY 2022-2023 refund?:</div>
+                                    <div class="mr-3">
+                                        <input name="schoolrefund" value="Yes" type="radio" id="YES" />
+                                        <label id="hidez" class="radio" for="YY">Yes</label>
+                                    </div>
+                                    <div>
+                                        <input name="schoolrefund" value="No" type="radio" id="NO"  />
+                                        <label id="hidez" class="radio" for="NN">No</label>
+                                    </div>
+                                <button type="submit" class="btn btn-success" name="submit" style="display: block;
+                                margin:0 auto; width: 200px;">Submit</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </form>
+            </form>
         <div style="margin-top: 100px; font-weight: bold; font-size: 30px;" class="footer text-center">
             <p style="text-transform: uppercase;">Copyright made only by Group 3</p>
         </div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
-// BACKEND SCRIPT IN THE PAID RESERVATION
-$(document).ready(function() {
-
-  $('.field-label.required').hide();
-  $('input[name="schoolrefund"]').hide();
-  $('label[for="YY"]').hide();
-  $('label[for="NN"]').hide();
-  $('input[name="paidreservation"]').change(function() {
-    if ($(this).val() === 'Yes') {
-      $('.field-label.required').show();
-      $('input[name="schoolrefund"]').show();
-      $('label[for="YY"]').show();
-      $('label[for="NN"]').show();
-    } else {
-      $('.field-label.required').hide();
-      $('input[name="schoolrefund"]').hide();
-      $('label[for="YY"]').hide();
-      $('label[for="NN"]').hide();
-    }
-  });
-
-  $('input[name="paidreservation"]:checked').trigger('change');
-});
-
-
-
-
-// BACKEND SCRIPT IN THE FUNCTION GRADE TOGGLE
-document.getElementById('Department').addEventListener('change', function () {
-    var selectedDepartment = this.value;
-    var gradeLevelSelect = document.getElementById('txtGradeLevel');
-    var strandCourseSelect = document.getElementById('strand_course');
-
-if (selectedDepartment === 'Pre-Elementary') {
-    // SHOW GRADE LEVELS NURSERY / KINDER
-    for (var i = 0; i < gradeLevelSelect.options.length; i++) {
-        var optionValue = gradeLevelSelect.options[i].value;
-        if (optionValue === 'Nursery' || optionValue === 'Kinder') {
-            gradeLevelSelect.options[i].style.display = 'block';
-        } else {
-            gradeLevelSelect.options[i].style.display = 'none';
-        }
-    }
-
-        // Hide strand/course select
-        strandCourseSelect.selectedIndex = 0;
-        strandCourseSelect.style.display = 'none';
-    } else if (selectedDepartment === 'Elementary') {
-        // SHOW GRADE LEVELS 1 to 6 AND HIDE NECCESSARY
-        for (var j = 0; j < gradeLevelSelect.options.length; j++) {
-            var optionValue = gradeLevelSelect.options[j].value;
-            if (optionValue === 'Grade 1' || optionValue === 'Grade 2' || optionValue === 'Grade 3' ||
-                optionValue === 'Grade 4' || optionValue === 'Grade 5' || optionValue === 'Grade 6') {
-                gradeLevelSelect.options[j].style.display = 'block';
-            } else {
-                gradeLevelSelect.options[j].style.display = 'none';
-            }
-        }
-
-        // Hide strand/course
-        strandCourseSelect.selectedIndex = 0;
-        strandCourseSelect.style.display = 'none';
-    } else if (selectedDepartment === 'Junior High School') {
-        // SHOW GRADE LEVELS 7 to 10 AND HIDE NECCESSARY
-        for (var k = 0; k < gradeLevelSelect.options.length; k++) {
-            var optionValue = gradeLevelSelect.options[k].value;
-            if (optionValue === 'Grade 7' || optionValue === 'Grade 8' || optionValue === 'Grade 9' ||
-                optionValue === 'Grade 10') {
-                gradeLevelSelect.options[k].style.display = 'block';
-            } else {
-                gradeLevelSelect.options[k].style.display = 'none';
-            }
-        }
-
-        // Hide strand/course
-        strandCourseSelect.selectedIndex = 0;
-        strandCourseSelect.style.display = 'none';
-    } else if (selectedDepartment === 'Senior High School') {
-        // Show grade levels 11 to 12 and hide unnecessary
-        for (var l = 0; l < gradeLevelSelect.options.length; l++) {
-            var optionValue = gradeLevelSelect.options[l].value;
-            if (optionValue === 'Grade 11' || optionValue === 'Grade 12') {
-                gradeLevelSelect.options[l].style.display = 'block';
-            } else {
-                gradeLevelSelect.options[l].style.display = 'none';
-            }
-        }
-
-        // Show strand options: HUMSS, ABM, STEM
-        strandCourseSelect.selectedIndex = 0;
-        strandCourseSelect.style.display = 'block';
-
-        // Show HUMSS, ABM, and STEM options; hide others
-        for (var m = 0; m < strandCourseSelect.options.length; m++) {
-            var optionValue = strandCourseSelect.options[m].value;
-            if (optionValue === 'HUMSS' || optionValue === 'ABM' || optionValue === 'STEM') {
-                strandCourseSelect.options[m].style.display = 'block';
-            } else {
-                strandCourseSelect.options[m].style.display = 'none';
-            }
-        }
-    } else if (selectedDepartment === 'College') {
-        // Show grade levels 1st year college to 4th year college and hide unnecessary
-        for (var n = 0; n < gradeLevelSelect.options.length; n++) {
-            var optionValue = gradeLevelSelect.options[n].value;
-            if (optionValue === '1st year college' || optionValue === '2nd year college' || optionValue === '3rd year college' || optionValue === '4th year college') {
-                gradeLevelSelect.options[n].style.display = 'block';
-            } else {
-                gradeLevelSelect.options[n].style.display = 'none';
-            }
-        }
-
-        // Show all strand/course options except HUMSS, ABM, and STEM
-        for (var m = 0; m < strandCourseSelect.options.length; m++) {
-            var optionValue = strandCourseSelect.options[m].value;
-            if (optionValue === 'HUMSS' || optionValue === 'ABM' || optionValue === 'STEM') {
-                strandCourseSelect.options[m].style.display = 'none';
-            } else {
-                strandCourseSelect.options[m].style.display = 'block';
-            }
-        }
-
-        // Show strand/course select
-        strandCourseSelect.style.display = 'block';
-    } else {
-        for (var n = 0; n < gradeLevelSelect.options.length; n++) {
-            gradeLevelSelect.options[n].style.display = 'block';
-        }
-
-        // RESET STRAND COURSE
-        for (var m = 0; m < strandCourseSelect.options.length; m++) {
-            strandCourseSelect.options[m].style.display = 'block';
-        }
-
-        // RESET THE GRADE LEVEL
-        gradeLevelSelect.selectedIndex = 0;
-        strandCourseSelect.selectedIndex = 0;
-        gradeLevelSelect.style.display = 'block';
-        strandCourseSelect.style.display = 'block';
-    }
-});
-
-
-
-
-
-</script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="components/script.js"></script>
 </body>
 </html>
